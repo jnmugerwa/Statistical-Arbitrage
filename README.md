@@ -1,6 +1,6 @@
 # Statistical Arbitrage
 Research, thoughts, and algorithms I've gathered on my exploration of applying statistical learning within financial markets.
 
-If you're new to stat arb, I'd reccomend starting by reading the Avelladena paper in the "papers" directory -- it's kind of like the "Hello World" of this field. Use Wikipedia liberally (have a firm understanding of the linear regression model and how one could use such a model to decompose an asset's returns into SYSTEMATIC and IDIOSYNCRATIC returns).
+If you're new to stat arb, I'd reccomend starting by reading "Stat_Arb_Overview" in the "research/notes" directory the Avelladena paper in the "papers" directory.
 
-!["financial markets"](misc/financial%20markets.jpg)
+!["financial markets"](misc/financialMarkets.jpg)

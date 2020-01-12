@@ -138,6 +138,7 @@ def trade(context, data):
         m = linear_model.LinearRegression()
         m.fit(X_train, y)        
         pred = m.predict(X_test)[0]
+        # Scoring: R^2; how well the model predicted the actual returns.
         score = m.score(X_train, y)
 
         predictions.append({'stock':stock, 'pred': pred, 'score': score})

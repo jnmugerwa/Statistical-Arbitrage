@@ -36,20 +36,19 @@ from sklearn.preprocessing import StandardScaler
 #######################################################
 lookback_days, num_risk_factors = 256, 5
 
-"""
-   Creates and/or stores all initial data needed for backtesting.
-   
-   Parameters
-   ----------
-   context: An augmented Python dictionary
-        From Quantopian: context is an augmented Python dictionary used for maintaining state during your backtest or 
-        live trading session. context should be used instead of global variables in the algorithm. Properties can be 
-        accessed using dot notation (context.some_property).
-        
-"""
-
 
 def initialize(context):
+    """
+       Creates and/or stores all initial data needed for backtesting.
+
+       Parameters
+       ----------
+       context: An augmented Python dictionary
+            From Quantopian: context is an augmented Python dictionary used for maintaining state during your backtest or
+            live trading session. context should be used instead of global variables in the algorithm. Properties can be
+            accessed using dot notation (context.some_property).
+
+    """
     set_fixed_costs(context)
     algo.schedule_function(
         trade,
@@ -60,45 +59,41 @@ def initialize(context):
     make_and_attach_pipeline(context)
 
 
-"""
-   Sets the fixed costs of the strategy.
-
-   Parameters
-   ----------
-   context: An augmented Python dictionary
-        see above.
-    slippage_bps: float
-        The slippage, or difference in where the signal was triggered and where the trade was actually executed. 
-        It is tracked in bps, or basis points.
-    commission_rate: float
-        Commission paid per-trade.
-    vol_limit: float
-        Sets a maximum amount of the volume that the strategy can trade.
-    min_trade_cost: float
-        Minimum cost to enter a trade.
-        
-"""
-
-
 def set_fixed_costs(context, slippage_bps=0.00, commission_rate=0.00,
                     vol_limit=1.0, min_trade_cost=0.00):
+    """
+       Sets the fixed costs of the strategy.
+
+       Parameters
+       ----------
+       context: An augmented Python dictionary
+            see above.
+        slippage_bps: float
+            The slippage, or difference in where the signal was triggered and where the trade was actually executed.
+            It is tracked in bps, or basis points.
+        commission_rate: float
+            Commission paid per-trade.
+        vol_limit: float
+            Sets a maximum amount of the volume that the strategy can trade.
+        min_trade_cost: float
+            Minimum cost to enter a trade.
+
+    """
     context.set_slippage(slippage.FixedBasisPointsSlippage(basis_points=slippage_bps, volume_limit=vol_limit))
     context.set_commission(commission.PerShare(cost=commission_rate, min_trade_cost=min_trade_cost))
 
 
-"""
-   Creates a "pipeline" -- i.e. a screener of stock data. By default, it will gets daily candle-bar data on all US 
-   equities from Quantopian.
-
-   Parameters
-   ----------
-   context: An augmented Python dictionary
-        See first method's comment.
-
-"""
-
-
 def make_and_attach_pipeline(context):
+    """
+       Creates a "pipeline" -- i.e. a screener of stock data. By default, it will gets daily candle-bar data on all US
+       equities from Quantopian.
+
+       Parameters
+       ----------
+       context: An augmented Python dictionary
+            See first method's comment.
+
+    """
     base_universe = QTradableStocksUS()
     pipe = Pipeline(
         screen=base_universe,
@@ -109,40 +104,36 @@ def make_and_attach_pipeline(context):
     algo.attach_pipeline(pipe, 'pipeline')
 
 
-"""
-   Screens and stores the data from the pipeline initialized above.
-
-   Parameters
-   ----------
-   context: An augmented Python dictionary
-        See first method's comment.W
-
-"""
-
-
 def store_stock_data_from_pipe(context):
+    """
+       Screens and stores the data from the pipeline initialized above.
+
+       Parameters
+       ----------
+       context: An augmented Python dictionary
+            See first method's comment.W
+
+    """
     context.output = algo.pipeline_output('pipeline')
     context.security_list = context.output.index
 
 
-"""
-   After deriving factors, training our model, and scoring our stocks we have a set of stocks we'd like to buy or sell.
-   This method will construct a portfolio containing those stocks, weighing how much money we put into any one stock 
-   based on a pre-set cap. 
-
-   Parameters
-   ----------
-   context: An augmented Python dictionary
-        See first method's comment.
-    longs: list
-        The list of stocks we'd like to long/buy.
-    shorts: list
-        The list of stocks we'd like to short/sell.
-
-"""
-
-
 def construct_portfolio(context, longs, shorts):
+    """
+       After deriving factors, training our model, and scoring our stocks we have a set of stocks we'd like to buy or sell.
+       This method will construct a portfolio containing those stocks, weighing how much money we put into any one stock
+       based on a pre-set cap.
+
+       Parameters
+       ----------
+       context: An augmented Python dictionary
+            See first method's comment.
+        longs: list
+            The list of stocks we'd like to long/buy.
+        shorts: list
+            The list of stocks we'd like to short/sell.
+
+    """
     for p in context.portfolio.positions:
         if context.portfolio.positions[p].amount > 0 and p in shorts:
             order_target_percent(p, -0.01)
@@ -164,38 +155,36 @@ def construct_portfolio(context, longs, shorts):
             order_target_percent(s, -0.01)
 
 
-"""
-   Conducts PCA to derive the risk factors for the stocks we screened. Then, it transforms the return data using the PCA
-   -derived basis (i.e. pca.fit_transform(returns)).
-
-   Please see "statArbOverview.pdf" in my repository if this doesn't make sense.
-
-   Parameters
-   ----------
-   context: An augmented Python dictionary
-        see above.
-    slippage_bps: float
-        The slippage, or difference in where the signal was triggered and where the trade was actually executed. 
-        It is tracked in bps, or basis points.
-    commission_rate: float
-        Commission paid per-trade.
-    vol_limit: float
-        Sets a maximum amount of the volume that the strategy can trade.
-    min_trade_cost: float
-        Minimum cost to enter a trade.
-
-   Returns
-   -------
-   returns: PANDAS df
-        A table giving daily return data for each screened stock.
-   pca_returns: PANDAS df
-        A table giving PCA-transformed return data for each screened stock.
-   stocks: a list of Strings
-        The names of the stocks we screened.
-"""
-
-
 def derive_factors_using_pca(price_data):
+    """
+       Conducts PCA to derive the risk factors for the stocks we screened. Then, it transforms the return data using the PCA
+       -derived basis (i.e. pca.fit_transform(returns)).
+
+       Please see "statArbOverview.pdf" in my repository if this doesn't make sense.
+
+       Parameters
+       ----------
+       context: An augmented Python dictionary
+            see above.
+        slippage_bps: float
+            The slippage, or difference in where the signal was triggered and where the trade was actually executed.
+            It is tracked in bps, or basis points.
+        commission_rate: float
+            Commission paid per-trade.
+        vol_limit: float
+            Sets a maximum amount of the volume that the strategy can trade.
+        min_trade_cost: float
+            Minimum cost to enter a trade.
+
+       Returns
+       -------
+       returns: PANDAS df
+            A table giving daily return data for each screened stock.
+       pca_returns: PANDAS df
+            A table giving PCA-transformed return data for each screened stock.
+       stocks: a list of Strings
+            The names of the stocks we screened.
+    """
     returns = np.log(price_data).diff()[1:]
     returns.dropna(inplace=True, axis=1)  # remove stocks with incomplete histories.
 
@@ -212,25 +201,23 @@ def derive_factors_using_pca(price_data):
     return returns, pca_returns, stocks
 
 
-"""
-   Trains a linear model on the stocks' PCA-transformed returns, returning a table with model prediction and score 
-   values for each stock.
-    
-   Please see "statArbOverview.pdf" in my repository if this doesn't make sense.
-
-   Parameters
-   ----------
-   price_data: PANDAS dataframe
-        A dataframe of price data for our screened stocks.
-
-   Returns
-   -------
-   pd.DataFrame(predictions): PANDAS dataframe
-        A table containing idiosyncratic return prediction and errors ("score") for each stock.
-"""
-
-
 def train_model(price_data):
+    """
+       Trains a linear model on the stocks' PCA-transformed returns, returning a table with model prediction and score
+       values for each stock.
+
+       Please see "statArbOverview.pdf" in my repository if this doesn't make sense.
+
+       Parameters
+       ----------
+       price_data: PANDAS dataframe
+            A dataframe of price data for our screened stocks.
+
+       Returns
+       -------
+       pd.DataFrame(predictions): PANDAS dataframe
+            A table containing idiosyncratic return prediction and errors ("score") for each stock.
+    """
     returns, pca_returns, stocks = derive_factors_using_pca(price_data)
 
     x_train = pca_returns[:-1, :]
@@ -255,29 +242,27 @@ def train_model(price_data):
     return pd.DataFrame(predictions)
 
 
-"""
-   Once we've scored our stocks, we choose some subset to actually take positions in. This method does that.
-   
-   Parameters
-   ----------
-   prediction_df: PANDAS dataframe
-        A table containing idiosyncratic return prediction and errors ("score") for each stock.
-   num_short: int
-        Number of stocks you'd like to short/sell.
-   num_long: int
-        Number of stocks you'd like to buy/long.
-
-   Returns
-   ----------
-    longs: list
-        The list of stocks we'd like to long/buy.
-    shorts: list
-        The list of stocks we'd like to short/sell.
-
-"""
-
-
 def select_stocks_to_trade(prediction_df, num_short=100, num_long=100):
+    """
+       Once we've scored our stocks, we choose some subset to actually take positions in. This method does that.
+
+       Parameters
+       ----------
+       prediction_df: PANDAS dataframe
+            A table containing idiosyncratic return prediction and errors ("score") for each stock.
+       num_short: int
+            Number of stocks you'd like to short/sell.
+       num_long: int
+            Number of stocks you'd like to buy/long.
+
+       Returns
+       ----------
+        longs: list
+            The list of stocks we'd like to long/buy.
+        shorts: list
+            The list of stocks we'd like to short/sell.
+
+    """
     # Extremely simple selection: If portolio size = k, we short top k/2 and sell bottom k/2.
     prediction_df.sort_values('pred', ascending=False, inplace=True)
     longs = prediction_df[:100]
@@ -292,19 +277,17 @@ def select_stocks_to_trade(prediction_df, num_short=100, num_long=100):
     return longs, shorts
 
 
-"""
-   Executes the trading logic of the algorithm: discerning what to buy and sell, then placing orders.
-   
-   Parameters
-   ----------
-   prediction_df: PANDAS dataframe
-        A table containing idiosyncratic return prediction and errors ("score") for each stock.
-   data: Quantopian data pipeline
-        An equities data pipeline.
-"""
-
-
 def trade(context, data):
+    """
+       Executes the trading logic of the algorithm: discerning what to buy and sell, then placing orders.
+
+       Parameters
+       ----------
+       prediction_df: PANDAS dataframe
+            A table containing idiosyncratic return prediction and errors ("score") for each stock.
+       data: Quantopian data pipeline
+            An equities data pipeline.
+    """
     stock_price_table = data.history(context.security_list, fields='price', bar_count=lookback_days, frequency="1d")
 
     predictions_and_scores = train_model(stock_price_table)

@@ -34,7 +34,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 #######################################################
-lookback_days, num_risk_factors = 256, 5
+lookback_days, num_risk_factors = 256, 15
 
 
 def initialize(context):
